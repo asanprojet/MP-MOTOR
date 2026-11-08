@@ -19,6 +19,9 @@ import {
   Download,
   Crown,
   Database,
+  Palette,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { User, Role } from '../shared/types';
 import { storage } from '../services/storage';
@@ -30,6 +33,7 @@ interface DesktopHeaderProps {
   onUserChange: (user: User) => void;
   onOpenShortcuts: () => void;
   onOpenDbConfig?: () => void;
+  onOpenThemeConfig?: () => void;
 }
 
 export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
@@ -37,6 +41,7 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
   onUserChange,
   onOpenShortcuts,
   onOpenDbConfig,
+  onOpenThemeConfig,
 }) => {
   const [params, setParams] = useState(storage.getParams());
   const [allUsers, setAllUsers] = useState<User[]>(storage.getUsers());
@@ -189,6 +194,18 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
               F1
             </kbd>
           </button>
+
+          {/* Theme & Display Mode Customizer */}
+          {onOpenThemeConfig && (
+            <button
+              onClick={onOpenThemeConfig}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 transition-all cursor-pointer shadow-xs"
+              title="Personnaliser le mode d'affichage (sombre/clair) et les couleurs"
+            >
+              <Palette className="w-4 h-4 text-purple-400" />
+              <span className="hidden md:inline">Thème & Couleurs</span>
+            </button>
+          )}
 
           {/* Direct Download .EXE Button */}
           <a
