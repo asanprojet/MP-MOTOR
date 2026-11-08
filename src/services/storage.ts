@@ -16,6 +16,7 @@ import {
   JournalActivite,
   Parametres,
   User,
+  Role,
 } from '../shared/types';
 import { usdToCents, usdToDixMillieme } from '../shared/money';
 
@@ -55,15 +56,53 @@ export const DEFAULT_PARAMS: Parametres = {
   modeSombre: true,
 };
 
+export function computeDefaultExpiration(role: Role): { dateExpiration: string | null; estAVie: boolean; dureeInitialeJours?: number } {
+  if (role === 'ARCHITECTE') {
+    return { dateExpiration: null, estAVie: true, dureeInitialeJours: undefined };
+  }
+  const now = new Date();
+  let days = 45; // défaut : 1 mois et 15 jours
+  if (role === 'SUPERADMIN') {
+    days = 60; // 2 mois
+  } else if (role === 'INVITE') {
+    days = 15; // 15 jours
+  } else {
+    days = 45; // 1 mois et 15 jours (Admin, Caissier, Magasinier, Comptable)
+  }
+  const exp = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  return {
+    dateExpiration: exp.toISOString(),
+    estAVie: false,
+    dureeInitialeJours: days,
+  };
+}
+
 export const INITIAL_USERS: User[] = [
   {
+    id: 'USR000',
+    nom: 'Architecte Système (Créateur)',
+    identifiant: 'architecte',
+    role: 'ARCHITECTE',
+    actif: true,
+    pin: '9999',
+    echecsConnexion: 0,
+    estAVie: true,
+    dateExpiration: null,
+    creeLe: new Date().toISOString(),
+    derniereConnexion: new Date().toISOString(),
+  },
+  {
     id: 'USR001',
-    nom: 'Michel P. (Propriétaire)',
+    nom: 'Michel P. (Directeur Général)',
     identifiant: 'superadmin',
     role: 'SUPERADMIN',
     actif: true,
     pin: '1234',
     echecsConnexion: 0,
+    estAVie: false,
+    dureeInitialeJours: 60,
+    dateExpiration: new Date(Date.now() + 60 * 24 * 3600 * 1000).toISOString(), // 2 mois
+    creeLe: new Date().toISOString(),
     derniereConnexion: new Date().toISOString(),
   },
   {
@@ -74,6 +113,10 @@ export const INITIAL_USERS: User[] = [
     actif: true,
     pin: '1234',
     echecsConnexion: 0,
+    estAVie: false,
+    dureeInitialeJours: 45,
+    dateExpiration: new Date(Date.now() + 45 * 24 * 3600 * 1000).toISOString(), // 1 mois et 15 jours
+    creeLe: new Date().toISOString(),
   },
   {
     id: 'USR003',
@@ -83,6 +126,10 @@ export const INITIAL_USERS: User[] = [
     actif: true,
     pin: '1234',
     echecsConnexion: 0,
+    estAVie: false,
+    dureeInitialeJours: 45,
+    dateExpiration: new Date(Date.now() + 45 * 24 * 3600 * 1000).toISOString(), // 1 mois et 15 jours
+    creeLe: new Date().toISOString(),
   },
   {
     id: 'USR004',
@@ -92,6 +139,10 @@ export const INITIAL_USERS: User[] = [
     actif: true,
     pin: '1234',
     echecsConnexion: 0,
+    estAVie: false,
+    dureeInitialeJours: 45,
+    dateExpiration: new Date(Date.now() + 45 * 24 * 3600 * 1000).toISOString(), // 1 mois et 15 jours
+    creeLe: new Date().toISOString(),
   },
   {
     id: 'USR005',
@@ -101,6 +152,23 @@ export const INITIAL_USERS: User[] = [
     actif: true,
     pin: '1234',
     echecsConnexion: 0,
+    estAVie: false,
+    dureeInitialeJours: 45,
+    dateExpiration: new Date(Date.now() + 45 * 24 * 3600 * 1000).toISOString(), // 1 mois et 15 jours
+    creeLe: new Date().toISOString(),
+  },
+  {
+    id: 'USR006',
+    nom: 'Visiteur / Stagiaire (Invité)',
+    identifiant: 'invite',
+    role: 'INVITE',
+    actif: true,
+    pin: '0000',
+    echecsConnexion: 0,
+    estAVie: false,
+    dureeInitialeJours: 15,
+    dateExpiration: new Date(Date.now() + 15 * 24 * 3600 * 1000).toISOString(), // 15 jours
+    creeLe: new Date().toISOString(),
   },
 ];
 
@@ -423,9 +491,47 @@ class StorageService {
     return updated;
   }
 
-  // --- Users ---
+  // --- Users & Licensing ---
   public getUsers(): User[] {
-    return this.get<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
+    const rawUsers = this.get<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
+    let changed = false;
+
+    // S'assurer que le compte Architecte et Invité existent dans la liste
+    const userMap = new Map(rawUsers.map(u => [u.identifiant, u]));
+    for (const initUser of INITIAL_USERS) {
+      if (!userMap.has(initUser.identifiant)) {
+        rawUsers.push(initUser);
+        changed = true;
+      }
+    }
+
+    // Migration des comptes sans date d'expiration
+    for (const u of rawUsers) {
+      if (u.role === 'ARCHITECTE') {
+        if (!u.estAVie) {
+          u.estAVie = true;
+          u.dateExpiration = null;
+          changed = true;
+        }
+      } else if (u.estAVie) {
+        if (u.dateExpiration !== null) {
+          u.dateExpiration = null;
+          changed = true;
+        }
+      } else if (!u.dateExpiration) {
+        const defaults = computeDefaultExpiration(u.role);
+        u.dateExpiration = defaults.dateExpiration;
+        u.estAVie = defaults.estAVie;
+        u.dureeInitialeJours = defaults.dureeInitialeJours;
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      this.set(STORAGE_KEYS.USERS, rawUsers);
+    }
+
+    return rawUsers;
   }
 
   public saveUser(userToSave: User, currentActor: User): void {
@@ -438,6 +544,58 @@ class StorageService {
     }
     this.set(STORAGE_KEYS.USERS, users);
     this.logAction(currentActor, 'UTILISATEUR_ENREGISTRE', 'UTILISATEURS', userToSave.identifiant, `Enregistrement du compte ${userToSave.nom} (${userToSave.role})`);
+  }
+
+  /**
+   * Action réservée à l'Architecte : prolonger ou définir la licence d'un utilisateur
+   */
+  public prolongUserLicense(
+    userId: string,
+    action: 'ADD_15_DAYS' | 'ADD_30_DAYS' | 'ADD_60_DAYS' | 'SET_LIFETIME' | 'SET_DATE',
+    customDateISO?: string,
+    currentActor?: User
+  ): User | null {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (!user) return null;
+
+    if (action === 'SET_LIFETIME') {
+      user.estAVie = true;
+      user.dateExpiration = null;
+    } else if (action === 'SET_DATE' && customDateISO) {
+      user.estAVie = false;
+      user.dateExpiration = customDateISO;
+    } else {
+      user.estAVie = false;
+      let daysToAdd = 15;
+      if (action === 'ADD_30_DAYS') daysToAdd = 30;
+      if (action === 'ADD_60_DAYS') daysToAdd = 60;
+
+      const currentExp = user.dateExpiration ? new Date(user.dateExpiration) : new Date();
+      const baseTime = currentExp.getTime() > Date.now() ? currentExp.getTime() : Date.now();
+      const newExp = new Date(baseTime + daysToAdd * 24 * 60 * 60 * 1000);
+      user.dateExpiration = newExp.toISOString();
+    }
+
+    this.saveUser(user, currentActor || user);
+    this.logAction(
+      currentActor || user,
+      'LICENCE_PROLONGEE',
+      'UTILISATEURS',
+      user.identifiant,
+      `Mise à jour de la validité de ${user.nom} : ${action}`
+    );
+    return user;
+  }
+
+  /**
+   * Action réservée à l'Architecte : activer ou désactiver la licence à vie pour toute l'entreprise
+   */
+  public setGlobalLifetimeLicense(enabled: boolean, currentActor: User): Parametres {
+    return this.updateParams(
+      { licenceGlobaleAVie: enabled },
+      currentActor
+    );
   }
 
   // --- Articles ---

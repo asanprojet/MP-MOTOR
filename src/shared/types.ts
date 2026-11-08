@@ -4,7 +4,14 @@
  * Maison MP Motors - Core Types & Data Contracts
  */
 
-export type Role = 'SUPERADMIN' | 'ADMIN' | 'MAGASINIER' | 'CAISSIER' | 'COMPTABLE';
+export type Role =
+  | 'ARCHITECTE'
+  | 'SUPERADMIN'
+  | 'ADMIN'
+  | 'MAGASINIER'
+  | 'CAISSIER'
+  | 'COMPTABLE'
+  | 'INVITE';
 
 export interface User {
   id: string;
@@ -15,6 +22,11 @@ export interface User {
   pin?: string;
   derniereConnexion?: string;
   echecsConnexion: number;
+  creeLe?: string;
+  // Gestion temporelle des licences et expirations
+  dateExpiration?: string | null; // Date ISO d'expiration (null si illimité / à vie)
+  estAVie?: boolean; // True si l'architecte a attribué une licence permanente
+  dureeInitialeJours?: number; // 60 (2 mois), 45 (1m15j), 15 (invité)
 }
 
 export type PaymentMethod = 
@@ -216,4 +228,5 @@ export interface Parametres {
   delaiInactiviteMinutes: number;
   logoDataUrl?: string;
   modeSombre: boolean;
+  licenceGlobaleAVie?: boolean; // Activé par l'Architecte pour autoriser l'application à vie pour tous
 }

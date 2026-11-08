@@ -16,6 +16,7 @@ import {
   FileSpreadsheet,
   Settings,
   ShieldAlert,
+  Monitor,
 } from 'lucide-react';
 import { User } from '../shared/types';
 import { hasPermission } from '../shared/permissions';
@@ -31,6 +32,7 @@ export type TabKey =
   | 'reports'
   | 'import'
   | 'settings'
+  | 'desktop_exe'
   | 'audit';
 
 interface NavigationProps {
@@ -123,6 +125,14 @@ export const Navigation: React.FC<NavigationProps> = ({
       label: 'Import / Export',
       icon: <FileSpreadsheet className="w-4 h-4 text-green-400" />,
       visible: hasPermission(role, 'canImportExportExcel'),
+    },
+    {
+      key: 'desktop_exe',
+      label: 'Exécutable .EXE',
+      icon: <Monitor className="w-4 h-4 text-cyan-400" />,
+      visible: true,
+      badge: 1,
+      badgeColor: 'bg-emerald-600 text-white',
     },
     {
       key: 'settings',

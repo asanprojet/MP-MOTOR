@@ -18,13 +18,13 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ currentUser }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [entityFilter, setEntityFilter] = useState('ALL');
 
-  if (currentUser.role !== 'SUPERADMIN') {
+  if (currentUser.role !== 'SUPERADMIN' && currentUser.role !== 'ARCHITECTE') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-950 text-slate-400 text-center">
         <ShieldAlert className="w-12 h-12 text-red-500 mb-3" />
-        <h3 className="text-base font-bold text-white">Accès Réservé au Propriétaire (SUPERADMIN)</h3>
+        <h3 className="text-base font-bold text-white">Accès Réservé à l'Architecte et au Superadmin</h3>
         <p className="text-xs text-slate-500 mt-1 max-w-sm">
-          Le journal d'audit contient la traçabilité intégrale de toutes les opérations sensibles et n'est consultable que par le Superadmin.
+          Le journal d'audit contient la traçabilité intégrale de toutes les opérations sensibles et n'est consultable que par l'Architecte ou le Superadmin.
         </p>
       </div>
     );

@@ -25,7 +25,7 @@ interface ImportExportViewProps {
 }
 
 export const ImportExportView: React.FC<ImportExportViewProps> = ({ currentUser }) => {
-  const [selectedType, setSelectedType] = useState<'ARTICLES' | 'CLIENTS' | 'FOURNISSEURS'>('ARTICLES');
+  const [selectedType, setSelectedType] = useState<'ARTICLES' | 'VENTES' | 'CLIENTS' | 'FOURNISSEURS'>('ARTICLES');
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [importStatus, setImportStatus] = useState<{
@@ -35,7 +35,7 @@ export const ImportExportView: React.FC<ImportExportViewProps> = ({ currentUser 
   } | null>(null);
 
   // Download template
-  const handleDownloadTemplate = (type: 'ARTICLES' | 'CLIENTS' | 'FOURNISSEURS') => {
+  const handleDownloadTemplate = (type: 'ARTICLES' | 'VENTES' | 'CLIENTS' | 'FOURNISSEURS') => {
     const { filename, content } = excelService.generateTemplate(type);
     excelService.downloadCSV(filename, content);
   };
@@ -62,6 +62,13 @@ export const ImportExportView: React.FC<ImportExportViewProps> = ({ currentUser 
 
     if (selectedType === 'ARTICLES') {
       const res = excelService.importArticles(fileContent, currentUser);
+      setImportStatus({
+        success: res.success,
+        count: res.importedCount,
+        errors: res.errors,
+      });
+    } else if (selectedType === 'VENTES') {
+      const res = excelService.importVentes(fileContent, currentUser);
       setImportStatus({
         success: res.success,
         count: res.importedCount,
@@ -96,7 +103,7 @@ export const ImportExportView: React.FC<ImportExportViewProps> = ({ currentUser 
         </div>
 
         {/* Quick export buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => excelService.exportArticlesCSV()}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-slate-700 cursor-pointer"
@@ -109,7 +116,14 @@ export const ImportExportView: React.FC<ImportExportViewProps> = ({ currentUser 
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-slate-700 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Exporter Ventes</span>
+            <span>Exporter Factures (Résumé)</span>
+          </button>
+          <button
+            onClick={() => excelService.exportVentesDetailleesCSV()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5 text-white" />
+            <span>Exporter Lignes Ventes & Marges</span>
           </button>
         </div>
       </div>
@@ -128,6 +142,31 @@ export const ImportExportView: React.FC<ImportExportViewProps> = ({ currentUser 
           </p>
 
           <div className="space-y-3 pt-2">
+            {/* Template Ventes */}
+            <div className="p-3.5 rounded-xl bg-slate-850 border border-emerald-500/40 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span>Modèle d'Import VENTES & FACTURES</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+                      NOUVEAU
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-400">
+                    N° Facture, Date, Client, Code pièce, Quantité, Prix unitaire, Remise, Mode paiement
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => handleDownloadTemplate('VENTES')}
+                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+              >
+                Télécharger .csv
+              </button>
+            </div>
+
+            {/* Template Articles */}
             <div className="p-3.5 rounded-xl bg-slate-850 border border-slate-750 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Package className="w-5 h-5 text-blue-400" />
@@ -146,6 +185,7 @@ export const ImportExportView: React.FC<ImportExportViewProps> = ({ currentUser 
               </button>
             </div>
 
+            {/* Template Clients */}
             <div className="p-3.5 rounded-xl bg-slate-850 border border-slate-750 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Users className="w-5 h-5 text-pink-400" />
@@ -164,9 +204,10 @@ export const ImportExportView: React.FC<ImportExportViewProps> = ({ currentUser 
               </button>
             </div>
 
+            {/* Template Fournisseurs */}
             <div className="p-3.5 rounded-xl bg-slate-850 border border-slate-750 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Truck className="w-5 h-5 text-emerald-400" />
+                <Truck className="w-5 h-5 text-purple-400" />
                 <div>
                   <div className="text-xs font-bold text-white">Modèle d'Import FOURNISSEURS</div>
                   <div className="text-[10px] text-slate-400">
@@ -200,6 +241,7 @@ export const ImportExportView: React.FC<ImportExportViewProps> = ({ currentUser 
               onChange={e => setSelectedType(e.target.value as any)}
               className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs font-bold text-white focus:outline-none focus:border-blue-500"
             >
+              <option value="VENTES">Ventes & Factures (Comptoir)</option>
               <option value="ARTICLES">Articles & Pièces détachées</option>
               <option value="CLIENTS">Clients</option>
               <option value="FOURNISSEURS">Fournisseurs</option>

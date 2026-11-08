@@ -16,10 +16,12 @@ import {
   DollarSign,
   Send,
   Eye,
+  Download,
 } from 'lucide-react';
 import { Vente, User } from '../shared/types';
 import { storage } from '../services/storage';
 import { salesService } from '../services/salesService';
+import { excelService } from '../services/excelService';
 import { hasPermission } from '../shared/permissions';
 import { formatUSD, formatCDF } from '../shared/money';
 import { PrintTicketModal } from '../components/PrintTicketModal';
@@ -117,6 +119,26 @@ export const SalesHistoryView: React.FC<SalesHistoryViewProps> = ({ currentUser 
               Taux figés sur chaque facture • Réimpression tickets 80mm & factures A4 • Traçabilité
             </p>
           </div>
+        </div>
+
+        {/* Sales export buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => excelService.exportVentesCSV()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
+            title="Exporter la liste des factures"
+          >
+            <Download className="w-3.5 h-3.5 text-blue-400" />
+            <span>Export Résumé</span>
+          </button>
+          <button
+            onClick={() => excelService.exportVentesDetailleesCSV()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+            title="Exporter chaque ligne d'article vendue avec les marges réelles"
+          >
+            <Download className="w-3.5 h-3.5 text-white" />
+            <span>Export Lignes & Marges</span>
+          </button>
         </div>
       </div>
 

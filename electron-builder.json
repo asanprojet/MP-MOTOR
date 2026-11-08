@@ -1,0 +1,40 @@
+{
+  "appId": "cd.maisonmpmotors.gestion",
+  "productName": "Maison MP Motors",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*",
+    "package.json"
+  ],
+  "extraMetadata": {
+    "main": "electron/main.cjs"
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Maison MP Motors",
+    "uninstallDisplayName": "Maison MP Motors Désinstallation",
+    "deleteAppDataOnUninstall": false
+  },
+  "portable": {
+    "artifactName": "Maison_MP_Motors_Portable_x64.exe"
+  }
+}

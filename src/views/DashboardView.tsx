@@ -16,11 +16,21 @@ import {
   Percent,
   Calendar,
   ArrowUpRight,
+  BarChart3,
 } from 'lucide-react';
 import { User, Vente, Article, Client } from '../shared/types';
 import { storage } from '../services/storage';
 import { stockService } from '../services/stockService';
 import { formatUSD, formatCDF, centsUSDToCDF } from '../shared/money';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from 'recharts';
 
 interface DashboardViewProps {
   currentUser: User;
@@ -32,6 +42,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ currentUser, onNav
   const [ventes] = useState<Vente[]>(storage.getVentes());
   const [articles] = useState<Article[]>(storage.getArticles());
   const [clients] = useState<Client[]>(storage.getClients());
+  const [chartCurrency, setChartCurrency] = useState<'USD' | 'CDF'>('USD');
 
   const validSales = ventes.filter(v => v.statut === 'VALIDE');
 
@@ -46,6 +57,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ currentUser, onNav
   const salesMonth = validSales.filter(v => v.date.startsWith(thisMonthPrefix));
   const turnoverMonthUSD = salesMonth.reduce((sum, v) => sum + v.totalUSD, 0);
   const turnoverMonthCDF = centsUSDToCDF(turnoverMonthUSD, params.tauxUSD_CDF);
+
+  // Compute 7-day daily sales history (Last 7 days including today)
+  const last7DaysData = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const dayStr = d.toISOString().slice(0, 10);
+
+    const dayName = d.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' });
+    const shortLabel = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+
+    const daySales = validSales.filter(v => v.date.startsWith(dayStr));
+    const totalUSDInCents = daySales.reduce((sum, v) => sum + v.totalUSD, 0);
+    const totalCDF = centsUSDToCDF(totalUSDInCents, params.tauxUSD_CDF);
+    const amountUSD = totalUSDInCents / 100; // in dollars for chart display
+
+    return {
+      date: dayStr,
+      label: shortLabel,
+      fullDate: dayName,
+      ventesUSD: Number(amountUSD.toFixed(2)),
+      ventesCDF: totalCDF,
+      totalCentsUSD: totalUSDInCents,
+      count: daySales.length,
+    };
+  });
+
+  const total7DaysUSDInCents = last7DaysData.reduce((acc, d) => acc + d.totalCentsUSD, 0);
+  const total7DaysCDF = centsUSDToCDF(total7DaysUSDInCents, params.tauxUSD_CDF);
+  const total7DaysCount = last7DaysData.reduce((acc, d) => acc + d.count, 0);
 
   // Compute Realized Gross Profit (Marge réelle calculée sur les coûts gelés)
   let totalCostSoldCentsUSD = 0;
@@ -204,6 +244,123 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ currentUser, onNav
             <span>Gérer les encaissements</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </div>
+        </div>
+      </div>
+
+      {/* 7-Day Sales Bar Chart (Recharts) */}
+      <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/20">
+              <BarChart3 className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider">
+                  Ventes Quotidiennes — 7 Derniers Jours
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                  {total7DaysCount} facture{total7DaysCount > 1 ? 's' : ''}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Chiffre d'affaires cumulé : <span className="font-bold font-mono text-white">{formatUSD(total7DaysUSDInCents)}</span>
+                <span className="text-slate-500 mx-1.5">•</span>
+                <span className="font-semibold font-mono text-emerald-400">{formatCDF(total7DaysCDF)}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Currency Toggle */}
+          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
+            <button
+              onClick={() => setChartCurrency('USD')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                chartCurrency === 'USD'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/40'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              USD ($)
+            </button>
+            <button
+              onClick={() => setChartCurrency('CDF')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                chartCurrency === 'CDF'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/40'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              CDF (FC)
+            </button>
+          </div>
+        </div>
+
+        {/* Chart Container */}
+        <div className="w-full h-72 pt-3">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={last7DaysData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+              <XAxis
+                dataKey="label"
+                stroke="#64748b"
+                tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }}
+                axisLine={{ stroke: '#334155' }}
+                tickLine={false}
+              />
+              <YAxis
+                stroke="#64748b"
+                tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: 'monospace' }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(val) =>
+                  chartCurrency === 'USD'
+                    ? `$${val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}`
+                    : `${val >= 1000000 ? `${(val / 1000000).toFixed(1)}M` : val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`
+                }
+              />
+              <Tooltip
+                cursor={{ fill: 'rgba(51, 65, 85, 0.3)' }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-slate-900/95 border border-slate-700 p-3 rounded-xl shadow-2xl backdrop-blur-md text-xs space-y-1.5 min-w-[190px]">
+                        <div className="font-bold text-white capitalize border-b border-slate-800 pb-1 flex items-center justify-between">
+                          <span>{data.fullDate}</span>
+                          <span className="text-[10px] font-normal text-slate-400">
+                            {data.count} facture{data.count > 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <div className="space-y-1 pt-0.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400">Total USD :</span>
+                            <span className="font-mono font-bold text-blue-400">
+                              {formatUSD(data.totalCentsUSD)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-400">Total CDF :</span>
+                            <span className="font-mono font-bold text-emerald-400">
+                              {formatCDF(data.ventesCDF)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar
+                dataKey={chartCurrency === 'USD' ? 'ventesUSD' : 'ventesCDF'}
+                name={chartCurrency === 'USD' ? 'Ventes ($)' : 'Ventes (FC)'}
+                fill={chartCurrency === 'USD' ? '#3b82f6' : '#10b981'}
+                radius={[6, 6, 0, 0]}
+                maxBarSize={52}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
