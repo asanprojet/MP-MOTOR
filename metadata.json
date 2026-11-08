@@ -1,0 +1,6 @@
+{
+  "name": "Maison MP Motors - Gestion Comptoir",
+  "description": "Application de gestion de pièces automobiles au comptoir (Ventes rapides USD/CDF, stock PUMP, caisse, crédits et impressions).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
