@@ -108,6 +108,7 @@ export default function App() {
         onUserChange={user => setCurrentUser(user)}
         onOpenShortcuts={() => setShortcutsModalOpen(true)}
         onOpenDbConfig={() => setDbSetupModalOpen(true)}
+        onOpenThemeConfig={() => setThemeModalOpen(true)}
       />
 
       {/* Navigation tabs */}
@@ -208,6 +209,7 @@ export default function App() {
                     refreshBadges();
                   }}
                   onOpenDbConfig={() => setDbSetupModalOpen(true)}
+                  onOpenThemeConfig={() => setThemeModalOpen(true)}
                 />
               )}
               {currentTab === 'desktop_exe' && <DesktopBuildView />}
@@ -230,6 +232,10 @@ export default function App() {
         onConfigApplied={() => {
           setDbSetupModalOpen(false);
         }}
+      />
+      <ThemeSettingsModal
+        isOpen={themeModalOpen}
+        onClose={() => setThemeModalOpen(false)}
       />
     </div>
   );

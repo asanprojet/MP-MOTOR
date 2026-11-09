@@ -52,44 +52,44 @@ title MAISON MP MOTORS - Générateur d'Exécutable Windows (.exe)
 color 0B
 echo ======================================================================
 echo           MAISON MP MOTORS - GENERATION DE L'EXECUTABLE WINDOWS
-echo           Application de gestion de pièces automobiles au comptoir
 echo ======================================================================
 echo.
-echo [1/3] Compilation du code React + Vite...
+echo [1/4] Nettoyage des anciens builds...
+rd /s /q dist
+rd /s /q release
+echo Succes : Nettoyage termine.
+
+echo.
+echo [2/4] Installation propre des dependances...
+call npm install --legacy-peer-deps
+if %errorlevel% neq 0 (
+    echo ERREUR lors de l'installation des dependances.
+    pause
+    exit /b %errorlevel%
+)
+
+echo.
+echo [3/4] Compilation du code React (Vite)...
 call npm run build
 if %errorlevel% neq 0 (
-    color 0C
     echo ERREUR lors de la compilation Vite.
     pause
     exit /b %errorlevel%
 )
-echo Succes : fichiers compilés dans le dossier \\dist\\.
-echo.
-
-echo [2/3] Verification des modules Electron et Electron-Builder...
-call npx electron-builder --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Installation de electron et electron-builder...
-    call npm install --save-dev electron electron-builder --legacy-peer-deps
-)
 
 echo.
-echo [3/3] Emballage de l'exécutable Windows (.exe) NSIS et Portable...
+echo [4/4] Emballage de l'exécutable (Electron-Builder)...
 call npx electron-builder --win nsis portable --config electron-builder.json
 if %errorlevel% neq 0 (
-    color 0C
-    echo ERREUR lors de la création de l'exécutable.
+    echo ERREUR lors de la creation de l'executable.
+    echo Assurez-vous d'avoir installe les outils de build Windows.
     pause
     exit /b %errorlevel%
 )
 
 echo.
 echo ======================================================================
-echo   FELICITATIONS ! Vos fichiers executables .exe sont generes dans :
-echo   Dossier : %cd%\\release\\
-echo.
-echo   1. Maison MP Motors Setup.exe (Installateur officiel Windows)
-echo   2. Maison_MP_Motors_Portable_x64.exe (Version portable 1-clic)
+echo   FELICITATIONS ! Vos executables sont generes dans : %cd%\\release\\
 echo ======================================================================
 echo.
 pause

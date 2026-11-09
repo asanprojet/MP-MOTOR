@@ -26,6 +26,8 @@ import {
   Sparkles,
   Infinity as InfinityIcon,
   ShieldAlert,
+  Palette,
+  Brush,
 } from 'lucide-react';
 import { User, Parametres, Role } from '../shared/types';
 import { storage, computeDefaultExpiration } from '../services/storage';
@@ -36,9 +38,10 @@ interface SettingsViewProps {
   currentUser: User;
   onUserListUpdated: () => void;
   onOpenDbConfig?: () => void;
+  onOpenThemeConfig?: () => void;
 }
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ currentUser, onUserListUpdated, onOpenDbConfig }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({ currentUser, onUserListUpdated, onOpenDbConfig, onOpenThemeConfig }) => {
   const [params, setParams] = useState<Parametres>(storage.getParams());
   const [users, setUsers] = useState<User[]>(storage.getUsers());
   const [dbConfig, setDbConfig] = useState(() => dbConfigService.getConfig());
@@ -683,6 +686,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ currentUser, onUserL
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Changer de Base & Tester le CRUD Automatique</span>
+                </button>
+              )}
+            </div>
+
+            {/* Theme & Display Mode Customization */}
+            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 space-y-3">
+              <div className="flex items-center gap-1.5 font-bold text-slate-200">
+                <Palette className="w-3.5 h-3.5 text-purple-400" />
+                <span>Thème, Couleurs & Interface</span>
+              </div>
+              <p className="text-xs text-slate-400">
+                Personnalisez votre environnement de travail : mode sombre, clair, couleurs d'accentuation et densité de l'interface.
+              </p>
+              {onOpenThemeConfig && (
+                <button
+                  type="button"
+                  onClick={onOpenThemeConfig}
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 font-bold text-xs cursor-pointer transition-all"
+                >
+                  <Brush className="w-3.5 h-3.5" />
+                  <span>Personnaliser l'Affichage</span>
                 </button>
               )}
             </div>
