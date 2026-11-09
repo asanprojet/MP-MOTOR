@@ -23,7 +23,7 @@ export const stockService = {
   getNextFactureNumber(): string {
     const params = storage.getParams();
     const nextNum = (params.compteurFacture || 100) + 1;
-    storage.updateParams({ compteurFacture: nextNum }, storage.getCurrentUser());
+    storage.updateParams({ compteurFacture: nextNum }, storage.getCurrentUser()!);
     const dateStr = formatTodayDateNumber();
     return `FAC-${dateStr}-${nextNum.toString().padStart(4, '0')}`;
   },
@@ -34,7 +34,7 @@ export const stockService = {
   getNextAchatNumber(): string {
     const params = storage.getParams();
     const nextNum = (params.compteurAchat || 30) + 1;
-    storage.updateParams({ compteurAchat: nextNum }, storage.getCurrentUser());
+    storage.updateParams({ compteurAchat: nextNum }, storage.getCurrentUser()!);
     const dateStr = formatTodayDateNumber();
     return `ACH-${dateStr}-${nextNum.toString().padStart(4, '0')}`;
   },
@@ -45,7 +45,7 @@ export const stockService = {
   getNextClientCode(): string {
     const params = storage.getParams();
     const nextNum = (params.compteurClient || 10) + 1;
-    storage.updateParams({ compteurClient: nextNum }, storage.getCurrentUser());
+    storage.updateParams({ compteurClient: nextNum }, storage.getCurrentUser()!);
     return `C${nextNum.toString().padStart(4, '0')}`;
   },
 
@@ -55,7 +55,7 @@ export const stockService = {
   getNextFournisseurCode(): string {
     const params = storage.getParams();
     const nextNum = (params.compteurFournisseur || 5) + 1;
-    storage.updateParams({ compteurFournisseur: nextNum }, storage.getCurrentUser());
+    storage.updateParams({ compteurFournisseur: nextNum }, storage.getCurrentUser()!);
     return `F${nextNum.toString().padStart(4, '0')}`;
   },
 
@@ -65,7 +65,7 @@ export const stockService = {
   getNextArticleCode(): string {
     const params = storage.getParams();
     const nextNum = (params.compteurArticle || 10) + 1;
-    storage.updateParams({ compteurArticle: nextNum }, storage.getCurrentUser());
+    storage.updateParams({ compteurArticle: nextNum }, storage.getCurrentUser()!);
     return `ART${nextNum.toString().padStart(4, '0')}`;
   },
 

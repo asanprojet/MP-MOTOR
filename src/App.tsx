@@ -27,14 +27,19 @@ import { DesktopBuildView } from './views/DesktopBuildView';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { DatabaseSetupModal } from './components/DatabaseSetupModal';
 import { ThemeSettingsModal } from './components/ThemeSettingsModal';
+import { LoginView } from './views/LoginView';
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<User>(() => storage.getCurrentUser());
+  const [currentUser, setCurrentUser] = useState<User | null>(() => storage.getCurrentUser());
   const [params, setParams] = useState(() => storage.getParams());
   const [currentTab, setCurrentTab] = useState<TabKey>('pos');
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
   const [dbSetupModalOpen, setDbSetupModalOpen] = useState(false);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
+
+  if (!currentUser) {
+    return <LoginView onLogin={setCurrentUser} />;
+  }
 
   // Dynamic badge counters
   const [stockAlertsCount, setStockAlertsCount] = useState<number>(0);

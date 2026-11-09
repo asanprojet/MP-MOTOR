@@ -463,15 +463,8 @@ class StorageService {
   }
 
   // --- Session & Current User ---
-  public getCurrentUser(): User {
-    const user = this.get<User | null>(STORAGE_KEYS.CURRENT_USER, null);
-    if (!user) {
-      const users = this.getUsers();
-      const defaultUser = users[0] || INITIAL_USERS[0];
-      this.setCurrentUser(defaultUser);
-      return defaultUser;
-    }
-    return user;
+  public getCurrentUser(): User | null {
+    return this.get<User | null>(STORAGE_KEYS.CURRENT_USER, null);
   }
 
   public setCurrentUser(user: User): void {

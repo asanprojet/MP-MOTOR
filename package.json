@@ -10,11 +10,15 @@
     "build:win": "vite build && electron-builder --win",
     "build:portable": "vite build && electron-builder --win portable",
     "build:nsis": "vite build && electron-builder --win nsis",
+    "build:android": "vite build && npx cap sync android",
     "preview": "vite preview",
     "clean": "rm -rf dist release",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.1",

@@ -1,0 +1,9 @@
+{
+  "appId": "com.maisonmpmotors.app",
+  "appName": "Maison MP Motors",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true
+  }
+}
