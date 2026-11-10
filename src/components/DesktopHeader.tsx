@@ -22,6 +22,7 @@ import {
   Palette,
   Sun,
   Moon,
+  LogOut,
 } from 'lucide-react';
 import { User, Role } from '../shared/types';
 import { storage } from '../services/storage';
@@ -34,6 +35,7 @@ interface DesktopHeaderProps {
   onOpenShortcuts: () => void;
   onOpenDbConfig?: () => void;
   onOpenThemeConfig?: () => void;
+  onLogout?: () => void;
 }
 
 export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
@@ -42,6 +44,7 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
   onOpenShortcuts,
   onOpenDbConfig,
   onOpenThemeConfig,
+  onLogout,
 }) => {
   const [params, setParams] = useState(storage.getParams());
   const [allUsers, setAllUsers] = useState<User[]>(storage.getUsers());
@@ -207,15 +210,15 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
             </button>
           )}
 
-          {/* Direct Download .EXE Button */}
+          {/* Direct Download Windows Package Button */}
           <a
             href="/downloads/Maison_MP_Motors_Windows_x64.zip"
             download="Maison_MP_Motors_Windows_x64.zip"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold transition-all shadow-md shadow-emerald-600/30 cursor-pointer border border-emerald-400/40"
-            title="Télécharger l'exécutable Windows complet (.exe)"
+            title="Télécharger l'archive complète avec lanceur Windows 1-clic (.zip)"
           >
             <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Télécharger .EXE</span>
+            <span className="hidden sm:inline">Pack Windows (.ZIP)</span>
           </a>
 
           {/* Active User session & Switcher */}
@@ -300,9 +303,38 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
                     );
                   })}
                 </div>
+
+                {onLogout && (
+                  <div className="p-2 border-t border-slate-800 bg-slate-950/90">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        onLogout();
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 text-xs font-bold transition-all cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Verrouiller / Se Déconnecter</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
+
+          {/* Quick Direct Logout Button */}
+          {onLogout && (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-red-950/60 border border-slate-700 hover:border-red-500/40 text-slate-400 hover:text-red-300 transition-colors cursor-pointer"
+              title="Se déconnecter (Verrouiller la session)"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden xl:inline text-xs font-semibold">Déconnexion</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

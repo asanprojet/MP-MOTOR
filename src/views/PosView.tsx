@@ -256,6 +256,9 @@ export const PosView: React.FC<PosViewProps> = ({ currentUser }) => {
       return;
     }
 
+    const receivedValue = parseFloat(montantRecuStr.replace(',', '.')) || 0;
+    
+    // Default to total if empty
     const effectiveReceived =
       montantRecuStr.trim() === ''
         ? modePaiement === 'CREDIT'
@@ -263,7 +266,16 @@ export const PosView: React.FC<PosViewProps> = ({ currentUser }) => {
           : devise === 'USD'
           ? totalCentsUSD / 100
           : totalCDF
-        : montantRecu;
+        : receivedValue;
+
+    // Block payment if insufficient for non-credit sales
+    if (modePaiement !== 'CREDIT') {
+        const recuCents = devise === 'USD' ? Math.round(effectiveReceived * 100) : Math.round((effectiveReceived * 100) / params.tauxUSD_CDF);
+        if (recuCents < totalCentsUSD) {
+            setErrorMessage("Le montant reçu est insuffisant pour finaliser cette vente.");
+            return;
+        }
+    }
 
     const result = salesService.createSale({
       clientName: selectedClientName,

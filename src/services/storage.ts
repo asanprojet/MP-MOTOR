@@ -19,6 +19,7 @@ import {
   Role,
 } from '../shared/types';
 import { usdToCents, usdToDixMillieme } from '../shared/money';
+import { syncService } from './SyncService';
 
 const STORAGE_KEYS = {
   USERS: 'mp_motors_users',
@@ -416,6 +417,7 @@ class StorageService {
   private set<T>(key: string, value: T): void {
     try {
       localStorage.setItem(key, JSON.stringify(value));
+      syncService.push(key, value);
     } catch (e) {
       console.error(`Error writing ${key} to storage:`, e);
     }
@@ -467,8 +469,12 @@ class StorageService {
     return this.get<User | null>(STORAGE_KEYS.CURRENT_USER, null);
   }
 
-  public setCurrentUser(user: User): void {
-    this.set(STORAGE_KEYS.CURRENT_USER, user);
+  public setCurrentUser(user: User | null): void {
+    if (user === null) {
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+    } else {
+      this.set(STORAGE_KEYS.CURRENT_USER, user);
+    }
   }
 
   // --- Parameters ---

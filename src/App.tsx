@@ -8,7 +8,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { User } from './shared/types';
 import { storage } from './services/storage';
 import { stockService } from './services/stockService';
-import { getUserLicenseStatus } from './shared/permissions';
+import { getUserLicenseStatus, hasPermission } from './shared/permissions';
 import { Clock, ShieldAlert, Crown, ArrowRight, Lock } from 'lucide-react';
 import { DesktopHeader } from './components/DesktopHeader';
 import { Navigation, TabKey } from './components/Navigation';
@@ -36,6 +36,42 @@ export default function App() {
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
   const [dbSetupModalOpen, setDbSetupModalOpen] = useState(false);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
+
+  // Auto-align default tab with user role permissions
+  useEffect(() => {
+    if (currentUser) {
+      const role = currentUser.role;
+      const isAuthorized = (() => {
+        switch (currentTab) {
+          case 'pos': return hasPermission(role, 'canPerformSales');
+          case 'articles': return hasPermission(role, 'canViewArticles');
+          case 'purchases': return hasPermission(role, 'canPerformPurchases');
+          case 'sales': return true;
+          case 'credits': return hasPermission(role, 'canManageCustomers');
+          case 'requests': return hasPermission(role, 'canApproveRequests') || hasPermission(role, 'canRequestSalesCancellation');
+          case 'dashboard': return hasPermission(role, 'canViewDashboard');
+          case 'reports': return hasPermission(role, 'canViewReports');
+          case 'import': return hasPermission(role, 'canImportExportExcel');
+          case 'settings': return hasPermission(role, 'canManageSettings');
+          case 'desktop_exe': return true;
+          case 'audit': return hasPermission(role, 'canViewAuditLog');
+          default: return true;
+        }
+      })();
+
+      if (!isAuthorized) {
+        if (hasPermission(role, 'canPerformSales')) {
+          setCurrentTab('pos');
+        } else if (hasPermission(role, 'canViewArticles')) {
+          setCurrentTab('articles');
+        } else if (hasPermission(role, 'canViewReports')) {
+          setCurrentTab('reports');
+        } else {
+          setCurrentTab('dashboard');
+        }
+      }
+    }
+  }, [currentUser]);
 
   if (!currentUser) {
     return <LoginView onLogin={setCurrentUser} />;
@@ -114,6 +150,10 @@ export default function App() {
         onOpenShortcuts={() => setShortcutsModalOpen(true)}
         onOpenDbConfig={() => setDbSetupModalOpen(true)}
         onOpenThemeConfig={() => setThemeModalOpen(true)}
+        onLogout={() => {
+          storage.setCurrentUser(null);
+          setCurrentUser(null);
+        }}
       />
 
       {/* Navigation tabs */}
@@ -179,6 +219,79 @@ export default function App() {
                       className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 cursor-pointer"
                     >
                       Générateur .EXE
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // RBAC Tab Access Verification
+          const role = currentUser.role;
+          const isTabAuthorized = (tab: TabKey): boolean => {
+            switch (tab) {
+              case 'pos':
+                return hasPermission(role, 'canPerformSales');
+              case 'articles':
+                return hasPermission(role, 'canViewArticles');
+              case 'purchases':
+                return hasPermission(role, 'canPerformPurchases');
+              case 'sales':
+                return true; // Historique consultation de vente
+              case 'credits':
+                return hasPermission(role, 'canManageCustomers');
+              case 'requests':
+                return hasPermission(role, 'canApproveRequests') || hasPermission(role, 'canRequestSalesCancellation');
+              case 'dashboard':
+                return hasPermission(role, 'canViewDashboard');
+              case 'reports':
+                return hasPermission(role, 'canViewReports');
+              case 'import':
+                return hasPermission(role, 'canImportExportExcel');
+              case 'settings':
+                return hasPermission(role, 'canManageSettings');
+              case 'desktop_exe':
+                return true;
+              case 'audit':
+                return hasPermission(role, 'canViewAuditLog');
+              default:
+                return true;
+            }
+          };
+
+          if (!isTabAuthorized(currentTab)) {
+            const fallbackTab: TabKey = hasPermission(role, 'canPerformSales')
+              ? 'pos'
+              : hasPermission(role, 'canViewArticles')
+              ? 'articles'
+              : hasPermission(role, 'canViewReports')
+              ? 'reports'
+              : 'dashboard';
+
+            return (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-950 text-slate-100 text-center">
+                <div className="max-w-md w-full p-8 rounded-2xl bg-slate-900 border border-amber-500/30 shadow-2xl space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center justify-center mx-auto">
+                    <ShieldAlert className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-white uppercase tracking-wider">
+                      Accès Restreint par Rôle
+                    </h2>
+                    <p className="text-xs text-amber-400/90 font-medium mt-1">
+                      Votre rôle <strong>{role}</strong> n'a pas les droits pour accéder à cet onglet.
+                    </p>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Les règles de sécurité et de contrôle interne bloquent cette interface pour préserver l'intégrité comptable et financière.
+                  </p>
+                  <div className="pt-2">
+                    <button
+                      onClick={() => setCurrentTab(fallbackTab)}
+                      className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 cursor-pointer transition-all inline-flex items-center gap-2"
+                    >
+                      <span>Retourner à mon espace autorisé</span>
+                      <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

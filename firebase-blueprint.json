@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "Article": {
+      "title": "Article",
+      "description": "Stock item definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "designation": { "type": "string" },
+        "prixVente": { "type": "number" },
+        "stockActuel": { "type": "number" }
+      },
+      "required": ["id", "code", "designation", "prixVente", "stockActuel"]
+    },
+    "Vente": {
+      "title": "Vente",
+      "description": "Sale record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "totalUSD": { "type": "number" }
+      },
+      "required": ["id", "date", "totalUSD"]
+    }
+  },
+  "firestore": {
+    "/articles/{articleId}": {
+      "schema": "Article",
+      "description": "Stock articles collection"
+    },
+    "/ventes/{venteId}": {
+      "schema": "Vente",
+      "description": "Sales history collection"
+    }
+  }
+}

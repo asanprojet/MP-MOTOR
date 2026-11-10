@@ -240,14 +240,25 @@ if exist "release\\win-unpacked\\Maison MP Motors.exe" (
               </div>
             </div>
 
-            <a
-              href="/downloads/Maison_MP_Motors.exe"
-              download="Maison_MP_Motors.exe"
-              className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
-            >
-              <Download className="w-4 h-4" />
-              <span>Télécharger l'Exécutable (.EXE Seul)</span>
-            </a>
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              <a
+                href="/downloads/Maison_MP_Motors_Windows_x64.zip"
+                download="Maison_MP_Motors_Windows_x64.zip"
+                className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
+              >
+                <Download className="w-4 h-4" />
+                <span>Télécharger le Pack Complet (.ZIP)</span>
+              </a>
+
+              <a
+                href="/downloads/DEMARRER_TOUT_EN_1_CLIC.bat"
+                download="DEMARRER_TOUT_EN_1_CLIC.bat"
+                className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
+              >
+                <Play className="w-4 h-4" />
+                <span>Lanceur 1-Clic (.BAT)</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
